@@ -1,0 +1,2 @@
+import {NextRequest,NextResponse} from 'next/server';import {createClient} from '@/lib/supabase/server';
+export async function GET(request:NextRequest){const db=await createClient();const origin=process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/,'')||request.nextUrl.origin;const{data,error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:`${origin}/auth/callback`,scopes:'email profile'}});if(error||!data.url)return NextResponse.redirect(new URL('/?auth=error',request.url));return NextResponse.redirect(data.url)}

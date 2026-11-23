@@ -1,0 +1,7 @@
+import 'server-only';import {createHmac,createHash,timingSafeEqual} from 'node:crypto';import {cookies} from 'next/headers';import {adminClient} from '@/lib/supabase/admin';
+function secret(){const s=process.env.GALLERY_SECRET||'';if(s.length<32)throw new Error('GALLERY_SECRET must have 32+ characters');return s}
+export function codeHash(code:string){return createHmac('sha256',secret()).update(code.trim().toUpperCase()).digest('hex')}
+export function tokenHash(token:string){return createHash('sha256').update(token).digest('hex')}
+function sign(data:string){return createHmac('sha256',secret()).update(data).digest('base64url')}
+export function galleryCookieValue(id:string){const expires=Date.now()+60*60*1000;const data=Buffer.from(JSON.stringify({id,expires})).toString('base64url');return `${data}.${sign(data)}`}
+export async function gallerySession(id:string){const store=await cookies(),raw=store.get('gala_gallery')?.value;if(!raw)return false;const [payload,sig]=raw.split('.');if(!payload||!sig)return false;const expected=Buffer.from(sign(payload)),received=Buffer.from(sig);if(expected.length!==received.length||!timingSafeEqual(expected,received))return false;try{const session=JSON.parse(Buffer.from(payload,'base64url').toString());if(session.id!==id||!Number.isFinite(session.expires)||session.expires<Date.now())return false;const db=adminClient();const{data}=await db.from('galleries').select('id,expires_at').eq('id',id).maybeSingle();return !!data&&new Date(data.expires_at).getTime()>Date.now()}catch{return false}}

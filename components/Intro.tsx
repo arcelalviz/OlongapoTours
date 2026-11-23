@@ -1,0 +1,3 @@
+'use client';
+import {useEffect,useState} from 'react';
+export function Intro(){const[show,setShow]=useState(false);useEffect(()=>{try{if(!sessionStorage.getItem('gala-intro')){setShow(true);sessionStorage.setItem('gala-intro','seen')}}catch{}},[]);if(!show)return null;return <div className="intro-screen" role="dialog" aria-label="Welcome to Olongapo" aria-modal="true"><div className="intro-burst"/><p className="eyebrow">A NEW WAY TO EXPLORE</p><div className="intro-head">TARA,<br/><em>GALA</em> TAYO!</div><p>OLONGAPO CITY · SUBIC BAY · ZAMBALES</p><button className="pill light" onClick={()=>setShow(false)}>ENTER THE CITY ↗</button></div>}

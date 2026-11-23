@@ -1,0 +1,2 @@
+import {destinations} from '@/lib/content';import {requireUser} from '@/lib/auth';import {StoryForm} from '@/components/StoryForm';
+export default async function NewStory(){await requireUser();const places=await destinations();return <><div className="page-head container"><span className="eyebrow">GIVE YOUR ADVENTURE A VOICE</span><h1>Tell us your <em>story.</em></h1><p>Your submission will appear publicly only after review.</p></div><section className="section container" style={{maxWidth:820}}><StoryForm places={places.map(x=>x.name)}/></section></>}
