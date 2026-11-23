@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "seed:sql": "node scripts/generate-seed.mjs",
     "migrate:legacy": "node scripts/migrate-legacy.mjs",
-    "verify:photos": "node scripts/audit-photos.mjs"
+    "verify:photos": "node scripts/audit-photos.mjs",
+    "seed:bundled": "node --env-file=.env.local scripts/seed-supabase.mjs"
   },
   "dependencies": {
     "next": "^16.0.0",

@@ -7,3 +7,11 @@ export async function adminContent(fd:FormData){await requireAdmin();const type=
 export async function moderateReview(fd:FormData){await requireAdmin();const status=String(fd.get('status'));if(!['published','hidden','pending'].includes(status))throw new Error('Invalid status');const db=await createClient();const{error}=await db.from('reviews').update({status}).eq('id',String(fd.get('id')||''));if(error)throw new Error(error.message);revalidatePath('/stories');revalidatePath('/');revalidatePath('/admin')}
 export async function extendGallery(fd:FormData){await requireAdmin();const id=String(fd.get('id')||''),value=String(fd.get('expires_at')||'');if(!/^[0-9a-f-]{36}$/.test(id)||!value)throw new Error('Invalid gallery or date');const date=new Date(value);if(Number.isNaN(date.getTime())||date.getTime()<=Date.now()||date.getTime()>Date.now()+366*86400000)throw new Error('Expiration must be in the next 366 days');const{adminClient}=await import('@/lib/supabase/admin');const{error}=await adminClient().from('galleries').update({expires_at:date.toISOString()}).eq('id',id);if(error)throw new Error('Could not change expiration');revalidatePath(`/admin/gallery/${id}`);revalidatePath('/admin')}
 export async function deleteGalleryMedia(fd:FormData){await requireAdmin();const id=String(fd.get('id')||''),gallery=String(fd.get('gallery')||'');if(!/^[0-9a-f-]{36}$/.test(id)||!/^[0-9a-f-]{36}$/.test(gallery))throw new Error('Invalid media');const{adminClient}=await import('@/lib/supabase/admin');const db=adminClient();const{data}=await db.from('media').select('storage_path').eq('id',id).eq('gallery_id',gallery).maybeSingle();if(!data)return;const{error}=await db.storage.from('visitor-private').remove([data.storage_path]);if(error)throw new Error(error.message);await db.from('media').delete().eq('id',id).eq('gallery_id',gallery);revalidatePath(`/admin/gallery/${gallery}`)}
+
+export async function restoreBundledCatalog(){
+ await requireAdmin();
+ const {ensurePublicCatalog}=await import('@/lib/catalog-bootstrap');
+ await ensurePublicCatalog(true);
+ revalidatePath('/');revalidatePath('/places');revalidatePath('/events');revalidatePath('/admin');
+ redirect('/admin?catalog=restored');
+}
