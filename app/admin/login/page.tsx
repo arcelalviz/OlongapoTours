@@ -8,7 +8,7 @@ const messages: Record<string, string> = {
   config: 'Administrator login configuration is incomplete. Check ADMIN_EMAIL and the public Supabase URL/key in Vercel, then redeploy.',
   credentials: 'Unable to sign in. Check the administrator email, password, and email confirmation.',
   profile: 'Your account is confirmed but does not have a correctly linked admin profile. Run the profile repair SQL provided with this update.',
-  database: 'Sign-in succeeded, but the server could not read your administrator profile. Check the Supabase project keys and the admin-login error code in Vercel logs.',
+  database: 'Sign-in succeeded, but your profile could not be read with your authenticated session. Check the profile RLS policy and the detailed admin-login message in Vercel logs.',
   setup: 'Your deployment is using the older admin login handler. Install the latest admin login repair patch and redeploy.',
 };
 
