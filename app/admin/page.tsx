@@ -1,5 +1,5 @@
-import Link from 'next/link';import {requireAdmin} from '@/lib/auth';import {createClient} from '@/lib/supabase/server';import {moderateReview,restoreBundledCatalog} from '@/app/actions';import {AdminGallery} from '@/components/AdminGallery';import {adminClient} from '@/lib/supabase/admin';
-export default async function Admin(){await requireAdmin();const db=await createClient();const [{data:places},{data:events},{data:reviews}]=await Promise.all([db.from('destinations').select('slug,name,image_url').order('sort_order'),db.from('tourism_events').select('slug,title,image_url').order('month_number'),db.from('reviews').select('id,title,place_name,status,created_at').order('created_at',{ascending:false}).limit(80)]);
+import Link from 'next/link';import {requireAdmin} from '@/lib/auth';import {moderateReview,restoreBundledCatalog} from '@/app/actions';import {AdminGallery} from '@/components/AdminGallery';import {adminClient} from '@/lib/supabase/admin';
+export default async function Admin(){await requireAdmin();const db=adminClient();const [{data:places},{data:events},{data:reviews}]=await Promise.all([db.from('destinations').select('slug,name,image_url').order('sort_order'),db.from('tourism_events').select('slug,title,image_url').order('month_number'),db.from('reviews').select('id,title,place_name,status,created_at').order('created_at',{ascending:false}).limit(80)]);
  let galleries: Array<{id:string,tourist_name:string,expires_at:string,created_at:string}> = [];
  let galleryUnavailable = false;
  try {
