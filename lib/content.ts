@@ -43,7 +43,30 @@ export async function destinations(featured=false){
 export async function events(){return (await catalogRows<Event>('tourism_events')).map(trustedEventImage)}
 export async function destination(slug:string){return (await destinations()).find(x=>x.slug===slug)||null}
 export async function event(slug:string){return (await events()).find(x=>x.slug===slug)||null}
-export async function stories(limit=30){
-  try {const db=await createClient();const{data}=await db.from('reviews').select('*,review_photos(id,public_url,alt_text),profiles(display_name)').eq('status','published').order('created_at',{ascending:false}).limit(limit);return (data||[]) as Story[]}
-  catch {return [] as Story[]}
+export async function stories(limit=30) {
+  try {
+    const db = await createClient();
+    const { data: rows, error: reviewError } = await db.from('reviews')
+      .select('id,title,body,place_name,rating,visit_date,created_at,user_id')
+      .eq('status','published').order('created_at',{ascending:false}).limit(limit);
+    if (reviewError) {
+      console.error('[stories] Public review query failed', {code: reviewError.code, message: reviewError.message});
+      return [] as Story[];
+    }
+    if (!rows?.length) return [] as Story[];
+    const ids = rows.map(r => r.id);
+    const {data: photos, error: photoError} = await db.from('review_photos')
+      .select('id,review_id,public_url,alt_text').in('review_id', ids);
+    if (photoError) console.error('[stories] Public photos query failed', {code: photoError.code, message: photoError.message});
+    const byReview = new Map<string, {id:string;public_url:string;alt_text:string|null}[]>();
+    for (const photo of photos || []) {
+      const list = byReview.get(photo.review_id) || [];
+      list.push({id:photo.id,public_url:photo.public_url,alt_text:photo.alt_text});
+      byReview.set(photo.review_id, list);
+    }
+    return rows.map(r => ({...r, review_photos: byReview.get(r.id) || [], profiles: null})) as Story[];
+  } catch (err) {
+    console.error('[stories] Public query unavailable', err instanceof Error ? err.message : 'unknown');
+    return [] as Story[];
+  }
 }
